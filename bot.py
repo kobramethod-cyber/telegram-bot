@@ -1,18 +1,24 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import os
+import threading
+from flask import Flask
+
+# ================= CONFIG =================
 
 TOKEN = os.environ.get("BOT_TOKEN")
-bot = telebot.TeleBot(TOKEN)
 
-# ===== SETTINGS =====
-CHANNEL_ID = -3575487358  # yaha apna channel ID dalna
+CHANNEL_ID = -1003575487358  # ✅ Your Private Channel ID
 INVITE_LINK = "https://t.me/+weJ7erS5u7BiNzRl"
 
 FORCE_PHOTO = "AgACAgQAAxkBAAMCaY8xSVNX2BdUJlE84GMAAY_noVs6AALhC2sbPfN0UGeH_LzoBCQiAQADAgADeAADOgQ"
 WELCOME_PHOTO = "AgACAgQAAxkBAAMEaY81VsbvguyK7cCdBTf87PPBlmEAAkO0MRsBZcVRHErApepJMRIBAAMCAAN4AAM6BA"
-# =====================
 
+# ==========================================
+
+bot = telebot.TeleBot(TOKEN)
+
+# --------- FORCE JOIN CHECK ----------
 def is_joined(user_id):
     try:
         member = bot.get_chat_member(CHANNEL_ID, user_id)
@@ -20,6 +26,7 @@ def is_joined(user_id):
     except:
         return False
 
+# --------- START COMMAND ----------
 @bot.message_handler(commands=['start'])
 def start(message):
     user = message.from_user
@@ -59,6 +66,25 @@ Kindly Please join Channel..."""
             parse_mode="HTML",
             reply_markup=markup
         )
+
+# --------- BUTTON RESPONSE ----------
+@bot.callback_query_handler(func=lambda call: True)
+def callback(call):
+    if call.data == "buy":
+        bot.send_message(call.message.chat.id, "💎 Premium Plans Coming Soon 🔥")
+
+# --------- FAKE WEB SERVER FOR RENDER FREE PLAN ----------
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+threading.Thread(target=run_web).start()
 
 print("Bot Running...")
 bot.infinity_polling()
